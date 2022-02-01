@@ -27,7 +27,7 @@ namespace PizzaButt.Orders.Infrastructure.Sagas
             Event(() => OrderAccepted, x => x.CorrelateById(context => context.Message.Id));
             Event(() => OrderShipped, x => x.CorrelateById(context => context.Message.OrderId));
             Event(() => OrderFinished, x => x.CorrelateById(context => context.Message.OrderId));
-            Event(() => OrderFailed, x => x.CorrelateById(context => context.Message.OrderId));
+            Event(() => OrderFailed, x => x.CorrelateById(context => context.Message.Message.OrderId));
 
             InstanceState(x => x.CurrentState);
 
@@ -62,7 +62,7 @@ namespace PizzaButt.Orders.Infrastructure.Sagas
         public Event<OrderAccepted> OrderAccepted { get; set; }
         public Event<OrderShipped> OrderShipped { get; set; }
         public Event<OrderFinished> OrderFinished { get; set; }
-        public Event<OrderFailed> OrderFailed { get; set; }
+        public Event<Fault<OrderFailed>> OrderFailed { get; set; }
 
         public State Submitted { get; set; }
         public State Accepted { get; set; }

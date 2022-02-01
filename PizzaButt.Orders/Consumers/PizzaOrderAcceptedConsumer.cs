@@ -99,7 +99,7 @@ namespace PizzaButt.Orders.Consumers
     }
 
     class OrderFailedConsumer :
-IConsumer<OrderFailed>
+IConsumer<Fault<OrderFailed>>
     {
         ILogger<OrderFailedConsumer> _logger;
 
@@ -110,7 +110,12 @@ IConsumer<OrderFailed>
 
         public async Task Consume(ConsumeContext<OrderFailed> context)
         {
-            _logger.LogInformation($"{nameof(OrderFailedConsumer)} OrderId: {context.Message.OrderId}");
+            //_logger.LogInformation($"{nameof(OrderFailedConsumer)} OrderId: {context.Message.OrderId}");
+        }
+
+        public async Task Consume(ConsumeContext<Fault<OrderFailed>> context)
+        {
+            _logger.LogError($"{nameof(OrderFailedConsumer)} OrderId: {context.Message.Message.OrderId}");
         }
     }
 

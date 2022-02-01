@@ -40,22 +40,23 @@ builder.Services.AddMassTransit(x =>
 
     x.AddSagaStateMachine<OrderStateMachine, OrderState>(c =>
     {
-        //c.UseConcurrentMessageLimit(1);
+        c.UseConcurrentMessageLimit(1);
         //c.UseScheduledRedelivery(r => r.Intervals(TimeSpan.FromSeconds(10)));
         c.UseMessageRetry(r => r.Interval(5, TimeSpan.FromSeconds(10)));
     })
-    .EntityFrameworkRepository(r =>
-    {
-        r.ConcurrencyMode = ConcurrencyMode.Pessimistic; // or use Optimistic, which requires RowVersion
-        r.AddDbContext<DbContext, PizzaButtSagasDbContext>((provider, conf) =>
-        {
-            conf.UseSqlServer(builder.Configuration.GetConnectionString("Pizzabuttsagas"), m =>
-            {
-                m.MigrationsAssembly(Assembly.GetExecutingAssembly().GetName().Name);
-                //m.MigrationsHistoryTable($"__{nameof(PizzaButtSagasDbContext)}");
-            });
-        });
-    });
+    .InMemoryRepository();
+    //.EntityFrameworkRepository(r =>
+    //{
+    //    r.ConcurrencyMode = ConcurrencyMode.Pessimistic; // or use Optimistic, which requires RowVersion
+    //    r.AddDbContext<DbContext, PizzaButtSagasDbContext>((provider, conf) =>
+    //    {
+    //        conf.UseSqlServer(builder.Configuration.GetConnectionString("Pizzabuttsagas"), m =>
+    //        {
+    //            m.MigrationsAssembly(Assembly.GetExecutingAssembly().GetName().Name);
+    //            //m.MigrationsHistoryTable($"__{nameof(PizzaButtSagasDbContext)}");
+    //        });
+    //    });
+    //});
 
     x.UsingRabbitMq((context, cfg) =>
     {
