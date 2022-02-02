@@ -1,3 +1,14 @@
+
+## Stack
+- Opentelemetry
+- EfCore
+- Masstransit
+- Netcore 6
+
+## How To Run
+- In development, just debug 
+
+
 ```mermaid
     stateDiagram-v2
         OrderSubmitted --> OrderAccepted : Submitted 
