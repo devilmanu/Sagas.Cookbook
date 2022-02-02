@@ -4,5 +4,6 @@
     {
         public Guid Id { get; set; }
         public string Status { get; set; }
+        public string[] Errors { get; set; }
     }
 }

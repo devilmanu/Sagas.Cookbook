@@ -28,7 +28,7 @@ namespace PizzaButt.Orders.API.Controllers.V1
 
         // GET api/<Orders>/123123-...
         [HttpDelete]
-        public async Task<IActionResult> Deletew(CancellationToken cancellationToken = default)
+        public async Task<IActionResult> Delete(CancellationToken cancellationToken = default)
         {
             await _orderService.DeleteAllAsync(cancellationToken);
             return NoContent();

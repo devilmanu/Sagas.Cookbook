@@ -27,34 +27,40 @@ namespace PizzaButt.Orders.Infrastructure.Sagas
             Event(() => OrderAccepted, x => x.CorrelateById(context => context.Message.Id));
             Event(() => OrderShipped, x => x.CorrelateById(context => context.Message.OrderId));
             Event(() => OrderFinished, x => x.CorrelateById(context => context.Message.OrderId));
-            Event(() => OrderFailed, x => x.CorrelateById(context => context.Message.Message.OrderId));
+            Event(() => OrderFailed, x => x.CorrelateById(context => context.Message.OrderId));
 
             InstanceState(x => x.CurrentState);
 
 
-
             Initially(
                 When(OrderSubmited)
-                    .Then(o => Console.WriteLineFormatted($"Processing in sagas order {o.Data.Id} status {nameof(OrderSubmited)}", Color.BlueViolet))
+                    .Then(o => Console.WriteLineFormatted($"Processing in sagas order {o.Data.Id} status {nameof(OrderSubmited)}", Color.YellowGreen))
                     .TransitionTo(Submitted));
+            
 
             During(Submitted,
                  //Ignore(OrderSubmited), //se raliza esto porque al iniciar el sagas este el primer stado y al ser el primero lo ignoramos
                  When(OrderAccepted)
-                    .Then(o => Console.WriteLineFormatted($"Processing in sagas order {o.Data.Id} status {nameof(OrderAccepted)}", Color.BlueViolet))
+                    .Then(o => Console.WriteLineFormatted($"Processing in sagas order {o.Data.Id} status {nameof(OrderAccepted)}", Color.LimeGreen))
                     .TransitionTo(Accepted));
 
             During(Accepted,
                  When(OrderShipped)
-                    .Then(o => Console.WriteLineFormatted($"Processing in sagas order {o.Data.OrderId} status {nameof(OrderShipped)}", Color.BlueViolet))
+                    .Then(o => Console.WriteLineFormatted($"Processing in sagas order {o.Data.OrderId} status {nameof(OrderShipped)}", Color.SeaGreen))
                     .TransitionTo(Shipped));
-
+            
             During(Shipped,
-                 When(OrderFinished)
-                    .Then(o => Console.WriteLineFormatted($"Processing in sagas order {o.Data.OrderId} status {nameof(OrderFinished)}", Color.BlueViolet))
-                    .TransitionTo(Finished));
+             When(OrderFinished)
+                .Then(o => Console.WriteLineFormatted($"Processing in sagas order {o.Data.OrderId} status {nameof(OrderFinished)}", Color.Green))
+                .TransitionTo(Finished)
+                .Finalize());
 
+            //During(Accepted,
+            //     When(OrderFailed)
+            //        .Then(o => Console.WriteLineFormatted($"Processing in sagas order {o.Data.OrderId} status {nameof(OrderFailed)} reason {o.Data.Error}", Color.Red))
+            //        .TransitionTo(Failed));
 
+            SetCompletedWhenFinalized(); //eliminamos instancia del rpository 
         }
 
 
@@ -62,7 +68,7 @@ namespace PizzaButt.Orders.Infrastructure.Sagas
         public Event<OrderAccepted> OrderAccepted { get; set; }
         public Event<OrderShipped> OrderShipped { get; set; }
         public Event<OrderFinished> OrderFinished { get; set; }
-        public Event<Fault<OrderFailed>> OrderFailed { get; set; }
+        public Event<OrderFailed> OrderFailed { get; set; }
 
         public State Submitted { get; set; }
         public State Accepted { get; set; }

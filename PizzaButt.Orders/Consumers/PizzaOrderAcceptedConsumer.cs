@@ -99,23 +99,63 @@ namespace PizzaButt.Orders.Consumers
     }
 
     class OrderFailedConsumer :
-IConsumer<Fault<OrderFailed>>
+        IConsumer<Fault<OrderSubmitted>>,
+        IConsumer<Fault<OrderAccepted>>,
+        IConsumer<Fault<OrderShipped>>,
+        IConsumer<Fault<OrderFinished>>
     {
         ILogger<OrderFailedConsumer> _logger;
+        private readonly IOrdersService _ordersService;
 
-        public OrderFailedConsumer(ILogger<OrderFailedConsumer> logger)
+        public OrderFailedConsumer(ILogger<OrderFailedConsumer> logger, IOrdersService ordersService)
         {
             _logger = logger;
+            _ordersService = ordersService;
         }
 
-        public async Task Consume(ConsumeContext<OrderFailed> context)
-        {
-            //_logger.LogInformation($"{nameof(OrderFailedConsumer)} OrderId: {context.Message.OrderId}");
-        }
-
-        public async Task Consume(ConsumeContext<Fault<OrderFailed>> context)
+        public async Task Consume(ConsumeContext<Fault<OrderFinished>> context)
         {
             _logger.LogError($"{nameof(OrderFailedConsumer)} OrderId: {context.Message.Message.OrderId}");
+            await _ordersService.FailedOrderAsync(new OrderDtoRequest
+            {
+                CreatedAt = DateTime.UtcNow,
+                Id = context.Message.Message.OrderId,
+                Pizzas = context.Message.Message.Pizzas
+            }, context.CancellationToken);
+
+        }
+
+        public async Task Consume(ConsumeContext<Fault<OrderShipped>> context)
+        {
+            _logger.LogError($"{nameof(OrderFailedConsumer)} OrderId: {context.Message.Message.OrderId}");
+            await _ordersService.FailedOrderAsync(new OrderDtoRequest
+            {
+                CreatedAt = DateTime.UtcNow,
+                Id = context.Message.Message.OrderId,
+                Pizzas = context.Message.Message.Pizzas
+            }, context.CancellationToken);
+        }
+
+        public async Task Consume(ConsumeContext<Fault<OrderAccepted>> context)
+        {
+            _logger.LogError($"{nameof(OrderFailedConsumer)} OrderId: {context.Message.Message.Id}");
+            await _ordersService.FailedOrderAsync(new OrderDtoRequest
+            {
+                CreatedAt = DateTime.UtcNow,
+                Id = context.Message.Message.Id,
+                Pizzas = context.Message.Message.Pizzas
+            }, context.CancellationToken);
+        }
+
+        public async Task Consume(ConsumeContext<Fault<OrderSubmitted>> context)
+        {
+            _logger.LogError($"{nameof(OrderFailedConsumer)} OrderId: {context.Message.Message.Id}");
+            await _ordersService.FailedOrderAsync(new OrderDtoRequest
+            {
+                CreatedAt = DateTime.UtcNow,
+                Id = context.Message.Message.Id,
+                Pizzas = context.Message.Message.Pizzas
+            }, context.CancellationToken);
         }
     }
 

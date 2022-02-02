@@ -11,5 +11,6 @@ namespace PizzaButt.Orders.Services.Oders
         Task DeleteAllAsync(CancellationToken cancellationToken);
         Task<OrderDtoResponse> GetOrderByIdAsync(Guid id, CancellationToken cancellationToken);
         Task<IEnumerable<OrderDtoResponse>> GetOrdersAsync(CancellationToken cancellationToken);
+        Task FailedOrderAsync(OrderDtoRequest request, CancellationToken cancellationToken);
     }
 }

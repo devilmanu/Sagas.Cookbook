@@ -40,9 +40,10 @@ builder.Services.AddMassTransit(x =>
 
     x.AddSagaStateMachine<OrderStateMachine, OrderState>(c =>
     {
-        c.UseConcurrentMessageLimit(1);
+        //c.UseConcurrentMessageLimit(1);
         //c.UseScheduledRedelivery(r => r.Intervals(TimeSpan.FromSeconds(10)));
         c.UseMessageRetry(r => r.Interval(5, TimeSpan.FromSeconds(10)));
+        c.UseInMemoryOutbox();
     })
     .InMemoryRepository();
     //.EntityFrameworkRepository(r =>

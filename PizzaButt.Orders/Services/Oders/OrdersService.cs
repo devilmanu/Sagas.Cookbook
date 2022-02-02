@@ -161,6 +161,25 @@ namespace PizzaButt.Orders.Services.Oders
             });
         }
 
+        public async Task FailedOrderAsync(OrderDtoRequest request, CancellationToken cancellationToken)
+        {
+            await UseDelayAsync();
+            var order = await _pizzaButtDbContext.Orders
+                .FirstOrDefaultAsync(o => o.Id == request.Id, cancellationToken);
+
+            if (order == null)
+                throw new KeyNotFoundException();
+            order.UpdateStatus(OrderStatusEnun.Failed, request.CreatedAt);
+            _pizzaButtDbContext.Update(order);
+            await _pizzaButtDbContext.SaveChangesAsync(cancellationToken);
+            await _publishEndpoint.Publish(new OrderFinished
+            {
+                OrderId = order.Id,
+                OrderDate = request.CreatedAt,
+                Pizzas = order.Pizzas.Select(o => o.Type).ToArray(),
+            });
+        }
+
         public async Task DeleteAllAsync(CancellationToken cancellationToken)
         {
             var  orders = await _pizzaButtDbContext.Orders.ToListAsync();
