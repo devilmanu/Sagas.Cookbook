@@ -11,6 +11,7 @@
   <ItemGroup>
     <PackageReference Include="Colorful.Console" Version="1.2.15" />
     <PackageReference Include="Ductus.FluentDocker" Version="2.10.44" />
+    <PackageReference Include="Hellang.Middleware.ProblemDetails" Version="6.4.0" />
     <PackageReference Include="Kurukuru" Version="1.4.2" />
     <PackageReference Include="MassTransit.AspNetCore" Version="7.3.1" />
     <PackageReference Include="MassTransit.EntityFrameworkCore" Version="7.3.1" />

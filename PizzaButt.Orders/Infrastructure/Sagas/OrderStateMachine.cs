@@ -36,7 +36,7 @@ namespace PizzaButt.Orders.Infrastructure.Sagas
                 When(OrderSubmited)
                     .Then(o => Console.WriteLineFormatted($"Processing in sagas order {o.Data.Id} status {nameof(OrderSubmited)}", Color.YellowGreen))
                     .TransitionTo(Submitted));
-            
+
 
             During(Submitted,
                  //Ignore(OrderSubmited), //se raliza esto porque al iniciar el sagas este el primer stado y al ser el primero lo ignoramos
@@ -48,17 +48,20 @@ namespace PizzaButt.Orders.Infrastructure.Sagas
                  When(OrderShipped)
                     .Then(o => Console.WriteLineFormatted($"Processing in sagas order {o.Data.OrderId} status {nameof(OrderShipped)}", Color.SeaGreen))
                     .TransitionTo(Shipped));
-            
-            During(Shipped,
-             When(OrderFinished)
-                .Then(o => Console.WriteLineFormatted($"Processing in sagas order {o.Data.OrderId} status {nameof(OrderFinished)}", Color.Green))
-                .TransitionTo(Finished)
-                .Finalize());
 
-            //During(Accepted,
-            //     When(OrderFailed)
-            //        .Then(o => Console.WriteLineFormatted($"Processing in sagas order {o.Data.OrderId} status {nameof(OrderFailed)} reason {o.Data.Error}", Color.Red))
-            //        .TransitionTo(Failed));
+            During(Shipped,
+                 When(OrderFinished)
+                    .Then(o => Console.WriteLineFormatted($"Processing  sagas in sagas order {o.Data.OrderId} status {nameof(OrderFinished)}", Color.DarkGreen))
+                    .TransitionTo(Finished),
+                 When(OrderFailed)
+                    .Then(o => Console.WriteLineFormatted($"Processing FAILED in sagas order {o.Data.OrderId} status {nameof(OrderFailed)} reason {o.Data.Error}", Color.Red))
+                    .TransitionTo(Failed));
+
+            During(Failed,
+                 When(OrderSubmited)
+                    .Then(o => Console.WriteLineFormatted($"Processing in sagas order {o.Data.Id} status {nameof(OrderFinished)}", Color.Red))
+                    .TransitionTo(Submitted));
+
 
             SetCompletedWhenFinalized(); //eliminamos instancia del rpository 
         }

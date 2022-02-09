@@ -1,4 +1,6 @@
 using GreenPipes;
+using Hellang.Middleware.ProblemDetails;
+using Hellang.Middleware.ProblemDetails.Mvc;
 using MassTransit;
 using MassTransit.EntityFrameworkCoreIntegration;
 using Microsoft.EntityFrameworkCore;
@@ -40,7 +42,9 @@ builder.Services.AddMassTransit(x =>
 
     x.AddSagaStateMachine<OrderStateMachine, OrderState>(c =>
     {
-        //c.UseConcurrentMessageLimit(1);
+        c.UseConcurrentMessageLimit(1);
+        c.UseConcurrencyLimit(1);
+        //c.UseRateLimit(1);
         //c.UseScheduledRedelivery(r => r.Intervals(TimeSpan.FromSeconds(10)));
         c.UseMessageRetry(r => r.Interval(5, TimeSpan.FromSeconds(10)));
         c.UseInMemoryOutbox();
@@ -72,12 +76,44 @@ builder.Services.AddMassTransit(x =>
 
 builder.Services.AddMassTransitHostedService();
 
-builder.Services.AddControllers();
+
+var configureProblemDetails = (ProblemDetailsOptions options) =>
+{
+    // Only include exception details in a development environment. There's really no nee
+    // to set this as it's the default behavior. It's just included here for completeness :)
+    options.IncludeExceptionDetails = (ctx, ex) => true;
+
+    // You can configure the middleware to re-throw certain types of exceptions, all exceptions or based on a predicate.
+    // This is useful if you have upstream middleware that needs to do additional handling of exceptions.
+    options.Rethrow<NotSupportedException>();
+
+    // This will map NotImplementedException to the 501 Not Implemented status code.
+    options.MapToStatusCode<NotImplementedException>(StatusCodes.Status501NotImplemented);
+
+    // This will map HttpRequestException to the 503 Service Unavailable status code.
+    options.MapToStatusCode<HttpRequestException>(StatusCodes.Status503ServiceUnavailable);
+
+    // Because exceptions are handled polymorphically, this will act as a "catch all" mapping, which is why it's added last.
+    // If an exception other than NotImplementedException and HttpRequestException is thrown, this will handle it.
+    //options.MapToStatusCode<Exception>(StatusCodes.Status500InternalServerError);
+
+    options.MapToStatusCode<KeyNotFoundException>(StatusCodes.Status404NotFound);
+
+    options.MapToStatusCode<ResourceFoundException>(StatusCodes.Status303SeeOther);
+};
+
+
+
+builder.Services.AddProblemDetails(configureProblemDetails);
+builder.Services.AddControllers()
+        .AddProblemDetailsConventions()
+        .AddXmlDataContractSerializerFormatters();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
 var app = builder.Build();
+
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
@@ -85,6 +121,8 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger();
     app.UseSwaggerUI();
 }
+
+app.UseProblemDetails();
 
 app.UseHttpsRedirection();
 
@@ -110,10 +148,9 @@ if (builder.Configuration.GetSection("Database:ApplyMigrations").Get<bool>())
 {
     using var scope = app.Services.CreateScope();
     var contextPizzaButt = scope.ServiceProvider.GetService<PizzaButtDbContext>();
-    var contextPizzaButtSagas = scope.ServiceProvider.GetService<PizzaButtDbContext>();
+    //var contextPizzaButtSagas = scope.ServiceProvider.GetService<PizzaButtDbContext>();
     contextPizzaButt.Database.Migrate();
-    contextPizzaButtSagas.Database.Migrate();
+    //contextPizzaButtSagas.Database.Migrate();
 }
-
 
 app.Run();

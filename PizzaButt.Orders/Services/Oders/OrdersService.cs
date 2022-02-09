@@ -80,7 +80,7 @@ namespace PizzaButt.Orders.Services.Oders
         public async Task SubmmitOrderAsync(OrderDtoRequest request, CancellationToken cancellationToken)
         {
             if (_pizzaButtDbContext.Orders.Any(o => o.Id == request.Id))
-                throw new Exception("exits 303 See Other");
+                throw new ResourceFoundException();
 
             var user = _pizzaButtDbContext.Users.FirstOrDefault(o => o.Subject == request.UserId) ?? new User(request.UserId, request.UserName);
             var pizzasRequest = request.Pizzas.Select(o => new Pizza(o)).ToHashSet();
@@ -207,5 +207,10 @@ namespace PizzaButt.Orders.Services.Oders
                 return entity;
 
         }
+    }
+
+    public class ResourceFoundException : Exception
+    {
+
     }
 }
