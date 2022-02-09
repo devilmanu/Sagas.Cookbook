@@ -1,4 +1,16 @@
+<<<<<<< HEAD
 ··
+=======
+
+## Stack
+- Opentelemetry
+- EfCore
+- Masstransit
+- Netcore 6
+
+## How To Run
+- In development, just debug 
+>>>>>>> a8730be4f8443b2d13adc70c74c82b31d21fabda
 
 
 ```mermaid
