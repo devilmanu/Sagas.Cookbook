@@ -31,6 +31,7 @@
             Shipped = 2,
             Finished = 3,
             Failed = 4,
+            Retried = 5,
         }
     }
 }

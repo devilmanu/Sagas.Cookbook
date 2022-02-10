@@ -37,7 +37,6 @@ namespace PizzaButt.Orders.Infrastructure.Sagas
                     .Then(o => Console.WriteLineFormatted($"Processing in sagas order {o.Data.Id} status {nameof(OrderSubmited)}", Color.YellowGreen))
                     .TransitionTo(Submitted));
 
-
             During(Submitted,
                  //Ignore(OrderSubmited), //se raliza esto porque al iniciar el sagas este el primer stado y al ser el primero lo ignoramos
                  When(OrderAccepted)
@@ -46,21 +45,22 @@ namespace PizzaButt.Orders.Infrastructure.Sagas
 
             During(Accepted,
                  When(OrderShipped)
-                    .Then(o => Console.WriteLineFormatted($"Processing in sagas order {o.Data.OrderId} status {nameof(OrderShipped)}", Color.SeaGreen))
-                    .TransitionTo(Shipped));
-
-            During(Shipped,
-                 When(OrderFinished)
-                    .Then(o => Console.WriteLineFormatted($"Processing  sagas in sagas order {o.Data.OrderId} status {nameof(OrderFinished)}", Color.DarkGreen))
-                    .TransitionTo(Finished),
+                    .Then(o => Console.WriteLineFormatted($"Processing in sagas order {o.Data.OrderId} status {nameof(OrderShipped)}", Color.ForestGreen))
+                    .TransitionTo(Shipped),
                  When(OrderFailed)
-                    .Then(o => Console.WriteLineFormatted($"Processing FAILED in sagas order {o.Data.OrderId} status {nameof(OrderFailed)} reason {o.Data.Error}", Color.Red))
+                    .Then(o => Console.WriteLineFormatted($"Processing in sagas order {o.Data.OrderId} status {nameof(OrderFailed)}", Color.IndianRed))
                     .TransitionTo(Failed));
 
             During(Failed,
                  When(OrderSubmited)
-                    .Then(o => Console.WriteLineFormatted($"Processing in sagas order {o.Data.Id} status {nameof(OrderFinished)}", Color.Red))
+                    .Then(o => Console.WriteLineFormatted($"Processing in sagas order {o.Data.Id} status {nameof(OrderSubmited)}", Color.LimeGreen))
                     .TransitionTo(Submitted));
+
+            During(Shipped,
+                 When(OrderFinished)
+                    .Then(o => Console.WriteLineFormatted($"Processing  sagas in sagas order {o.Data.OrderId} status {nameof(OrderFinished)}", Color.DarkGreen))
+                    .TransitionTo(Finished)
+                    .Finalize());
 
 
             SetCompletedWhenFinalized(); //eliminamos instancia del rpository 

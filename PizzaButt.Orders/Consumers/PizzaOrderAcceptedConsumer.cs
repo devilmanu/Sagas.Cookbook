@@ -20,12 +20,13 @@ namespace PizzaButt.Orders.Consumers
 
         public async Task Consume(ConsumeContext<OrderSubmitted> context)
         {
-            _logger.LogInformation($"{nameof(OrderSubmitedConsumer)} OrderId: {context.Message.Id} retry count {context.GetRetryCount()}");
+            _logger.LogInformation($"{nameof(OrderSubmitedConsumer)} OrderId: {context.Message.Id} retry count {context.GetRetryAttempt()} {context.GetRetryCount()}");
             await _ordersService.AcceptOrderAsync(new OrderDtoRequest
             {
                 CreatedAt = DateTime.UtcNow,
                 Id = context.Message.Id,
-                Pizzas = context.Message.Pizzas
+                Pizzas = context.Message.Pizzas,
+                ThrowError = context.Message.ThrowError
             }, context.CancellationToken);
         }
     }
@@ -44,13 +45,13 @@ namespace PizzaButt.Orders.Consumers
 
         public async Task Consume(ConsumeContext<OrderAccepted> context)
         {
-            await Task.Delay(30000);
-            _logger.LogInformation($"{nameof(OrderAcceptedConsumer)} OrderId: {context.Message.Id} retry count {context.GetRetryCount()}");
+            _logger.LogInformation($"{nameof(OrderAcceptedConsumer)} OrderId: {context.Message.Id} retry count {context.GetRetryAttempt()}");
             await _ordersService.ShipOrderAsync(new OrderDtoRequest
             {
                 CreatedAt = DateTime.UtcNow,
                 Id = context.Message.Id,
-                Pizzas = context.Message.Pizzas
+                Pizzas = context.Message.Pizzas,
+                ThrowError = context.Message.ThrowError
             }, context.CancellationToken);
         }
     }
@@ -69,7 +70,7 @@ namespace PizzaButt.Orders.Consumers
 
         public async Task Consume(ConsumeContext<OrderShipped> context)
         {
-            _logger.LogInformation($"{nameof(OrderShippedConsumer)} OrderId: {context.Message.OrderId} retry count {context.GetRetryCount()}");
+            _logger.LogInformation($"{nameof(OrderShippedConsumer)} OrderId: {context.Message.OrderId} retry count {context.GetRetryAttempt()}");
             await _ordersService.FinishOrderAsync(new OrderDtoRequest
             {
                 CreatedAt = DateTime.UtcNow,
@@ -98,6 +99,26 @@ namespace PizzaButt.Orders.Consumers
         }
     }
 
+    class OrderRetriedConsumer :
+        IConsumer<OrderRetried>
+    {
+        ILogger<OrderRetriedConsumer> _logger;
+        private readonly IOrdersService _ordersService;
+
+        public OrderRetriedConsumer(ILogger<OrderRetriedConsumer> logger, IOrdersService ordersService)
+        {
+            _logger = logger;
+            _ordersService = ordersService;
+        }
+
+        public async Task Consume(ConsumeContext<OrderRetried> context)
+        {
+            _logger.LogInformation($"{nameof(OrderRetriedConsumer)} OrderId: {context.Message.OrderId} DONEEEEEE!!!!!!!!");
+
+        }
+    }
+
+
     class OrderFailedConsumer :
         IConsumer<Fault<OrderSubmitted>>,
         IConsumer<Fault<OrderAccepted>>,
@@ -115,7 +136,7 @@ namespace PizzaButt.Orders.Consumers
 
         public async Task Consume(ConsumeContext<Fault<OrderFinished>> context)
         {
-            _logger.LogError($"{nameof(OrderFailedConsumer)} OrderId: {context.Message.Message.OrderId} retry count {context.GetRetryCount()}");
+            _logger.LogError($"{nameof(OrderFailedConsumer)} OrderId: {context.Message.Message.OrderId} retry count {context.GetRetryAttempt()}");
             await _ordersService.FailedOrderAsync(new OrderDtoRequest
             {
                 CreatedAt = DateTime.UtcNow,
@@ -133,7 +154,7 @@ namespace PizzaButt.Orders.Consumers
 
         public async Task Consume(ConsumeContext<Fault<OrderShipped>> context)
         {
-            _logger.LogError($"{nameof(OrderFailedConsumer)} OrderId: {context.Message.Message.OrderId} retry count {context.GetRetryCount()}");
+            _logger.LogError($"{nameof(OrderFailedConsumer)} OrderId: {context.Message.Message.OrderId} retry count {context.GetRetryAttempt()}");
             await _ordersService.FailedOrderAsync(new OrderDtoRequest
             {
                 CreatedAt = DateTime.UtcNow,
@@ -150,7 +171,7 @@ namespace PizzaButt.Orders.Consumers
 
         public async Task Consume(ConsumeContext<Fault<OrderAccepted>> context)
         {
-            _logger.LogError($"{nameof(OrderFailedConsumer)} OrderId: {context.Message.Message.Id}, retry count {context.GetRetryCount()}");
+            _logger.LogError($"{nameof(OrderFailedConsumer)} OrderId: {context.Message.Message.Id}, retry count {context.GetRetryCount()} {context.GetRetryAttempt()}");
             await _ordersService.FailedOrderAsync(new OrderDtoRequest
             {
                 CreatedAt = DateTime.UtcNow,
@@ -167,7 +188,7 @@ namespace PizzaButt.Orders.Consumers
 
         public async Task Consume(ConsumeContext<Fault<OrderSubmitted>> context)
         {
-            _logger.LogError($"{nameof(OrderFailedConsumer)} OrderId: {context.Message.Message.Id} retry count {context.GetRetryCount()}");
+            _logger.LogError($"{nameof(OrderFailedConsumer)} OrderId: {context.Message.Message.Id} retry count {context.GetRetryCount()} {context.GetRetryAttempt()}");
             await _ordersService.FailedOrderAsync(new OrderDtoRequest
             {
                 CreatedAt = DateTime.UtcNow,

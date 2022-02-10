@@ -9,6 +9,7 @@ namespace PizzaButt.Contracts
         public Guid Id { get; set; }
         public string[] Pizzas { get; set; }
         public DateTimeOffset OrderDate { get; set; }
+        public bool ThrowError { get; set; }
     }
 
     public class OrderAccepted
@@ -16,6 +17,7 @@ namespace PizzaButt.Contracts
         public Guid Id { get; set; }
         public string[] Pizzas { get; set; }
         public DateTimeOffset OrderDate { get; set; }
+        public bool ThrowError { get; set; }
     }
 
     public class OrderShipped
@@ -27,6 +29,14 @@ namespace PizzaButt.Contracts
 
 
     public class OrderFinished
+
+    {
+        public Guid OrderId { get; set; }
+        public string[] Pizzas { get; set; }
+        public DateTimeOffset OrderDate { get; set; }
+    }
+
+    public class OrderRetried
 
     {
         public Guid OrderId { get; set; }

@@ -8,6 +8,7 @@ namespace PizzaButt.Orders.Services.Oders
         Task AcceptOrderAsync(OrderDtoRequest request, CancellationToken cancellationToken);
         Task ShipOrderAsync(OrderDtoRequest request, CancellationToken cancellationToken);
         Task FinishOrderAsync(OrderDtoRequest request, CancellationToken cancellationToken);
+        Task RetriedOrderAsync(OrderDtoRequest request, CancellationToken cancellationToken);
         Task DeleteAllAsync(CancellationToken cancellationToken);
         Task<OrderDtoResponse> GetOrderByIdAsync(Guid id, CancellationToken cancellationToken);
         Task<IEnumerable<OrderDtoResponse>> GetOrdersAsync(CancellationToken cancellationToken);
