@@ -5,19 +5,22 @@ using PizzaButt.Contracts;
 using PizzaButt.Orders.Infrastructure.Sagas;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Xunit;
-using static PizzaButt.Orders.Domain.Order;
+using Xunit.Abstractions;
 
 namespace PizzaButt.Orders.FunctionalTests
 {
     public class Sagas
     {
+        private readonly ITestOutputHelper _testOutputHelper;
+
         public IServiceProvider ServiceProvider { get; set; }
 
-        public Sagas()
+        public Sagas(ITestOutputHelper testOutputHelper)
         {
             ServiceProvider = new ServiceCollection()
                .AddMassTransitInMemoryTestHarness(cfg =>
@@ -27,6 +30,7 @@ namespace PizzaButt.Orders.FunctionalTests
                    cfg.AddSagaStateMachineTestHarness<OrderStateMachine, OrderState>();
                })
                .BuildServiceProvider(true);
+            _testOutputHelper = testOutputHelper;
         }
 
         [Fact]
@@ -47,8 +51,13 @@ namespace PizzaButt.Orders.FunctionalTests
                 await harness.Bus.Publish(orderSubmitted);
 
                 Assert.True(await harness.Published.Any<OrderSubmitted>());
-
                 Assert.True(await harness.Consumed.Any<OrderSubmitted>());
+
+                Assert.True(await harness.Published.Any<OrderAccepted>());
+                Assert.True(await harness.Consumed.Any<OrderAccepted>());
+
+                Assert.True(await harness.Published.Any<OrderShipped>());
+                Assert.True(await harness.Consumed.Any<OrderShipped>());
 
                 var sagaHarness = ServiceProvider.GetRequiredService<IStateMachineSagaTestHarness<OrderState, OrderStateMachine>>();
 
@@ -57,6 +66,10 @@ namespace PizzaButt.Orders.FunctionalTests
                 Assert.True(await sagaHarness.Created.Any(x => x.CorrelationId == orderSubmitted.Id));
 
                 var saga = sagaHarness.Created.Contains(orderSubmitted.Id);
+                var con = new ConsoleWriter(_testOutputHelper);
+                Console.SetOut(con);
+                await harness.OutputTimeline(_testOutputHelper.GetType(), opt => opt.Now().IncludeAddress());
+
                 Assert.True(saga != null);
                 Assert.True(saga.CurrentState == 3); 
             }
@@ -66,6 +79,20 @@ namespace PizzaButt.Orders.FunctionalTests
 
                 harness.Dispose();
             }
+        }
+    }
+
+    public class ConsoleWriter : StringWriter
+    {
+        private ITestOutputHelper output;
+        public ConsoleWriter(ITestOutputHelper output)
+        {
+            this.output = output;
+        }
+
+        public override void WriteLine(string m)
+        {
+            output.WriteLine(m);
         }
     }
 }

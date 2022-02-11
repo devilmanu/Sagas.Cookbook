@@ -34,16 +34,17 @@ builder.Services.AddTransient<IOrdersService, OrdersService>();
 builder.Services.AddMassTransit(x =>
 {
     x.SetKebabCaseEndpointNameFormatter();
-    x.AddConsumer<OrderSubmitedConsumer>();
+    x.AddConsumer<OrderSubmitedConsumer>(o => o.UseConcurrentMessageLimit(1));
     x.AddConsumer<OrderAcceptedConsumer>();
     x.AddConsumer<OrderShippedConsumer>();
     x.AddConsumer<OrderFinishedConsumer>();
+    //x.AddConsumer<OrderFinishedConsumer>(o => o.UseConcurrentMessageLimit(1));
     x.AddConsumer<OrderFailedConsumer>();
 
     x.AddSagaStateMachine<OrderStateMachine, OrderState>(c =>
     {
-        c.UseConcurrentMessageLimit(1);
-        c.UseConcurrencyLimit(1);
+        //c.UseConcurrentMessageLimit(1);
+        //c.UseConcurrencyLimit(1);
         //c.UseRateLimit(1);
         //c.UseScheduledRedelivery(r => r.Intervals(TimeSpan.FromSeconds(10)));
         c.UseMessageRetry(r => r.Interval(5, TimeSpan.FromSeconds(10)));
