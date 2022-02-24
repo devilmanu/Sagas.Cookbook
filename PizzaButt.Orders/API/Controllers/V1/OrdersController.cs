@@ -1,5 +1,6 @@
 ﻿using MassTransit;
 using Microsoft.AspNetCore.Mvc;
+using PizzaButt.Orders.Infrastructure.Sagas;
 using PizzaButt.Orders.Services.Oders;
 using PizzaButt.Orders.Services.Oders.Dtos;
 
@@ -13,6 +14,7 @@ namespace PizzaButt.Orders.API.Controllers.V1
     {
         private readonly IOrdersService _orderService;
 
+
         public OrdersController(IOrdersService orderService)
         {
             _orderService = orderService;
@@ -23,6 +25,15 @@ namespace PizzaButt.Orders.API.Controllers.V1
         public async Task<IActionResult> Get(CancellationToken cancellationToken = default)
         {
             var response = await _orderService.GetOrdersAsync(cancellationToken);
+            return Ok(response);
+        }
+
+
+        //GET: api/<Orders>/id
+        [HttpGet("{id:guid}")]
+        public async Task<IActionResult> Get(Guid id, CancellationToken cancellationToken)
+        {
+            var response = await _orderService.GetOrderByIdAsync(id, cancellationToken);
             return Ok(response);
         }
 

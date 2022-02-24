@@ -6,21 +6,33 @@ using PizzaButt.Orders.Services.Oders.Dtos;
 namespace PizzaButt.Orders.Consumers
 {
 
+
+    public class MertricsDto
+    {
+        public Guid Id { get; set; }
+        public string Source { get; set; }
+        public DateTimeOffset DateUtc { get; set; }
+
+    }
+
     class OrderSubmitedConsumer :
     IConsumer<OrderSubmitted>
     {
         ILogger<OrderSubmitedConsumer> _logger;
         private readonly IOrdersService _ordersService;
+        public readonly HttpClient HttpClient;
 
-        public OrderSubmitedConsumer(ILogger<OrderSubmitedConsumer> logger, IOrdersService ordersService)
+        public OrderSubmitedConsumer(ILogger<OrderSubmitedConsumer> logger, IOrdersService ordersService, IHttpClientFactory clientFactory)
         {
             _logger = logger;
             _ordersService = ordersService;
+            HttpClient = clientFactory.CreateClient("Metrics");
+
         }
 
         public async Task Consume(ConsumeContext<OrderSubmitted> context)
         {
-            _logger.LogInformation($"{nameof(OrderSubmitedConsumer)} OrderId: {context.Message.Id} retry count {context.GetRetryAttempt()} {context.GetRetryCount()}");
+            _logger.LogInformation($"{nameof(OrderSubmitedConsumer)} OrderId: {context.Message.Id} retry count {context.GetRetryCount()} {context.GetRetryAttempt()}");
             await _ordersService.AcceptOrderAsync(new OrderDtoRequest
             {
                 CreatedAt = DateTime.UtcNow,
@@ -28,6 +40,12 @@ namespace PizzaButt.Orders.Consumers
                 Pizzas = context.Message.Pizzas,
                 ThrowError = context.Message.ThrowError
             }, context.CancellationToken);
+            await HttpClient.PostAsJsonAsync("/metrics", new MertricsDto
+            {
+                DateUtc = DateTime.UtcNow,
+                Id = context.Message.Id,
+                Source = nameof(OrderSubmitted)
+            });
         }
     }
 
@@ -45,7 +63,7 @@ namespace PizzaButt.Orders.Consumers
 
         public async Task Consume(ConsumeContext<OrderAccepted> context)
         {
-            _logger.LogInformation($"{nameof(OrderAcceptedConsumer)} OrderId: {context.Message.Id} retry count {context.GetRetryAttempt()}");
+            _logger.LogInformation($"{nameof(OrderAcceptedConsumer)} OrderId: {context.Message.Id} retry count {context.GetRetryCount()} {context.GetRetryAttempt()}");
             await _ordersService.ShipOrderAsync(new OrderDtoRequest
             {
                 CreatedAt = DateTime.UtcNow,
@@ -70,7 +88,7 @@ namespace PizzaButt.Orders.Consumers
 
         public async Task Consume(ConsumeContext<OrderShipped> context)
         {
-            _logger.LogInformation($"{nameof(OrderShippedConsumer)} OrderId: {context.Message.OrderId} retry count {context.GetRetryAttempt()}");
+            _logger.LogInformation($"{nameof(OrderShippedConsumer)} OrderId: {context.Message.OrderId} retry count {context.GetRetryCount()} {context.GetRetryAttempt()}");
             await _ordersService.FinishOrderAsync(new OrderDtoRequest
             {
                 CreatedAt = DateTime.UtcNow,
@@ -118,7 +136,6 @@ namespace PizzaButt.Orders.Consumers
         }
     }
 
-
     class OrderFailedConsumer :
         IConsumer<Fault<OrderSubmitted>>,
         IConsumer<Fault<OrderAccepted>>,
@@ -161,12 +178,13 @@ namespace PizzaButt.Orders.Consumers
                 Id = context.Message.Message.OrderId,
                 Pizzas = context.Message.Message.Pizzas
             }, context.CancellationToken);
-            await context.Publish(new OrderSubmitted
-            {
-                OrderDate = context.Message.Message.OrderDate,
-                Id = context.Message.Message.OrderId,
-                Pizzas = context.Message.Message.Pizzas
-            }, context.CancellationToken);
+
+            //await context.Publish(new OrderSubmitted
+            //{
+            //    OrderDate = context.Message.Message.OrderDate,
+            //    Id = context.Message.Message.OrderId,
+            //    Pizzas = context.Message.Message.Pizzas
+            //}, context.CancellationToken);
         }
 
         public async Task Consume(ConsumeContext<Fault<OrderAccepted>> context)
@@ -176,13 +194,14 @@ namespace PizzaButt.Orders.Consumers
             {
                 CreatedAt = DateTime.UtcNow,
                 Id = context.Message.Message.Id,
-                Pizzas = context.Message.Message.Pizzas
+                Pizzas = context.Message.Message.Pizzas,
             }, context.CancellationToken);
             await context.Publish(new OrderSubmitted
             {
                 OrderDate = context.Message.Message.OrderDate,
                 Id = context.Message.Message.Id,
-                Pizzas = context.Message.Message.Pizzas
+                Pizzas = context.Message.Message.Pizzas,
+                ThrowError = true,
             }, context.CancellationToken);
         }
 

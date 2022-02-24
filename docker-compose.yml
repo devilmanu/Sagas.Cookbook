@@ -45,3 +45,19 @@ services:
       - 9200:9200
       - 9300:9300
 
+  server:
+    image: nginxdemos/hello
+    ports: 
+      - 80
+
+  localtunnel:
+    image: efrecon/localtunnel
+    restart: on-failure
+    command:
+      --local-host server --port 80 --subdomain $SUBDOMAIN
+    environment: 
+      - SUBDOMAIN=mihomiue
+    links:
+      - server
+    depends_on:
+      - server

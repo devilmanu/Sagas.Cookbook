@@ -25,20 +25,45 @@ builder.Services.AddOpenTelemetryTracing((b) => b
     .AddAspNetCoreInstrumentation()
     .AddHttpClientInstrumentation()
     .AddMassTransitInstrumentation()
+    .AddSqlClientInstrumentation(o =>
+    {
+        o.EnableConnectionLevelAttributes = true;
+        o.SetDbStatementForText = true;
+        o.RecordException = true;
+    })
     .AddZipkinExporter());
 builder.Services.Configure<ZipkinExporterOptions>(builder.Configuration.GetSection("Zipkin"));
 
+builder.Services.AddHttpClient("PizzaButt.Metrics", http =>
+{
+    http.BaseAddress = new Uri("https://localhost:7056");
+});
+
+
+builder.Services.AddCors(options =>
+{
+    options.AddDefaultPolicy(
+        builder =>
+        {
+            builder.AllowAnyOrigin()
+                .AllowAnyHeader()
+                .AllowAnyMethod();
+        });
+});
 
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddTransient<IOrdersService, OrdersService>();
 builder.Services.AddMassTransit(x =>
 {
     x.SetKebabCaseEndpointNameFormatter();
-    x.AddConsumer<OrderSubmitedConsumer>(o => o.UseConcurrentMessageLimit(1));
-    x.AddConsumer<OrderAcceptedConsumer>();
+    x.AddConsumer<OrderSubmitedConsumer>();
+    x.AddConsumer<OrderAcceptedConsumer>(o => {
+        o.UseRetry(r => { r.Interval(5, TimeSpan.FromSeconds(5)); });
+        o.UseConcurrentMessageLimit(1);
+    });
     x.AddConsumer<OrderShippedConsumer>();
     x.AddConsumer<OrderFinishedConsumer>();
-    //x.AddConsumer<OrderFinishedConsumer>(o => o.UseConcurrentMessageLimit(1));
+    x.AddConsumer<OrderFinishedConsumer>();
     x.AddConsumer<OrderFailedConsumer>();
 
     x.AddSagaStateMachine<OrderStateMachine, OrderState>(c =>
@@ -47,8 +72,8 @@ builder.Services.AddMassTransit(x =>
         //c.UseConcurrencyLimit(1);
         //c.UseRateLimit(1);
         //c.UseScheduledRedelivery(r => r.Intervals(TimeSpan.FromSeconds(10)));
-        c.UseMessageRetry(r => r.Interval(5, TimeSpan.FromSeconds(10)));
         c.UseInMemoryOutbox();
+
     })
     .InMemoryRepository();
     //.EntityFrameworkRepository(r =>
@@ -115,6 +140,7 @@ builder.Services.AddSwaggerGen();
 
 var app = builder.Build();
 
+app.UseCors();
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
@@ -149,9 +175,7 @@ if (builder.Configuration.GetSection("Database:ApplyMigrations").Get<bool>())
 {
     using var scope = app.Services.CreateScope();
     var contextPizzaButt = scope.ServiceProvider.GetService<PizzaButtDbContext>();
-    //var contextPizzaButtSagas = scope.ServiceProvider.GetService<PizzaButtDbContext>();
     contextPizzaButt.Database.Migrate();
-    //contextPizzaButtSagas.Database.Migrate();
 }
 
 app.Run();

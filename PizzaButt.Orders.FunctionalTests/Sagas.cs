@@ -53,22 +53,18 @@ namespace PizzaButt.Orders.FunctionalTests
                 Assert.True(await harness.Published.Any<OrderSubmitted>());
                 Assert.True(await harness.Consumed.Any<OrderSubmitted>());
 
-                Assert.True(await harness.Published.Any<OrderAccepted>());
-                Assert.True(await harness.Consumed.Any<OrderAccepted>());
-
-                Assert.True(await harness.Published.Any<OrderShipped>());
-                Assert.True(await harness.Consumed.Any<OrderShipped>());
-
                 var sagaHarness = ServiceProvider.GetRequiredService<IStateMachineSagaTestHarness<OrderState, OrderStateMachine>>();
 
                 Assert.True(await sagaHarness.Consumed.Any<OrderSubmitted>());
 
                 Assert.True(await sagaHarness.Created.Any(x => x.CorrelationId == orderSubmitted.Id));
 
+                await harness.Published.Any<OrderAccepted>();
+
                 var saga = sagaHarness.Created.Contains(orderSubmitted.Id);
                 var con = new ConsoleWriter(_testOutputHelper);
                 Console.SetOut(con);
-                await harness.OutputTimeline(_testOutputHelper.GetType(), opt => opt.Now().IncludeAddress());
+                await harness.OutputTimeline(con, opt => opt.Now().IncludeAddress());
 
                 Assert.True(saga != null);
                 Assert.True(saga.CurrentState == 3); 
