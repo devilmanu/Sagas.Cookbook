@@ -8,6 +8,8 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{3DDC2E73-37DA-41CE-A418-86734B042006}"
 	ProjectSection(SolutionItems) = preProject
 		docker-compose.yml = docker-compose.yml
+		otel-collector-config.yaml = otel-collector-config.yaml
+		prometheus.yaml = prometheus.yaml
 		README.md = README.md
 	EndProjectSection
 EndProject
@@ -29,7 +31,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "PizzaButt.Metrics", "PizzaB
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "FrontEnd", "FrontEnd", "{1ED28C74-2DA7-4E13-8C02-04D8B0E7F71B}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PizzaButt.Frontend", "PizzaButt.Frontend\PizzaButt.Frontend.csproj", "{6B0DD95D-1CB6-4A1B-906A-2FBCECFD7D01}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "PizzaButt.Frontend", "PizzaButt.Frontend\PizzaButt.Frontend.csproj", "{6B0DD95D-1CB6-4A1B-906A-2FBCECFD7D01}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

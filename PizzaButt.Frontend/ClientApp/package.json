@@ -3,6 +3,12 @@
   "version": "0.1.0",
   "private": true,
   "dependencies": {
+    "@opentelemetry/api": "^1.0.4",
+    "@opentelemetry/context-zone": "^1.0.1",
+    "@opentelemetry/exporter-zipkin": "^1.0.1",
+    "@opentelemetry/instrumentation-document-load": "^0.27.1",
+    "@opentelemetry/sdk-trace-web": "^1.0.1",
+    "@opentelemetry/instrumentation-fetch": "0.27.0",
     "bootstrap": "^5.1.0",
     "http-proxy-middleware": "^0.19.1",
     "jquery": "^3.5.1",
@@ -15,6 +21,7 @@
     "react-scripts": "^4.0.3",
     "reactstrap": "^8.9.0",
     "rimraf": "^2.6.2",
+    "uuid": "8.3.2",
     "web-vitals": "^0.2.4",
     "workbox-background-sync": "^5.1.3",
     "workbox-broadcast-update": "^5.1.3",
@@ -27,10 +34,7 @@
     "workbox-range-requests": "^5.1.3",
     "workbox-routing": "^5.1.3",
     "workbox-strategies": "^5.1.3",
-    "workbox-streams": "^5.1.3",
-    "uuid": "8.3.2",
-    "@opentelemetry/exporter-zipkin": "1.0.1"
-    
+    "workbox-streams": "^5.1.3"
   },
   "devDependencies": {
     "ajv": "^6.9.1",
@@ -45,7 +49,7 @@
     "typescript": "^4.2.4"
   },
   "scripts": {
-"prestart": "node aspnetcore-https && node aspnetcore-react",
+    "prestart": "node aspnetcore-https && node aspnetcore-react",
     "start": "rimraf ./build && react-scripts start",
     "build": "react-scripts build",
     "test": "cross-env CI=true react-scripts test --env=jsdom",

@@ -1,23 +1,24 @@
+﻿import { v4 as uuidv4 } from 'uuid';
 import React, { Component } from 'react';
-import { v4 as uuidv4 } from 'uuid';
+import { tracer } from '../tracer';
+import { context, trace } from '@opentelemetry/api';
 
 export class FetchData extends Component {
-  static displayName = FetchData.name;
+    static displayName = FetchData.name;
 
   constructor(props) {
     super(props);
     this.state = { forecasts: [], loading: true };
+
   }
 
-  componentDidMount() {
-    this.populateWeatherData();
+    componentDidMount() {
+        this.populateOrders();
   }
 
   static renderForecastsTable(forecasts) {
       return (
      <div>
-
-          <button className="btn btn-primary" onClick={this.PostOrder}>Create Order</button>
           <table className='table table-striped' aria-labelledby="tabelLabel">
             <thead>
               <tr>
@@ -30,7 +31,7 @@ export class FetchData extends Component {
                   <tr key={forecast.id}>
                       <td>{forecast.id}</td>
                       <td>{forecast.status}</td>
-                </tr>
+                  </tr>
               )}
             </tbody>
           </table>
@@ -45,36 +46,61 @@ export class FetchData extends Component {
 
     return (
       <div>
-        <h1 id="tabelLabel" >Weather forecast</h1>
+            <h1 id="tabelLabel" >Weather forecast</h1>
+            <div>
+                <button className="btn btn-primary" onClick={this.PostOrder}>Create</button>
+            </div>
         <p>This component demonstrates fetching data from the server.</p>
         {contents}
       </div>
     );
-  }
+    }
 
-  async populateWeatherData() {
+
+
+    addIconsStatus(status) {
+        if (status === 'Submited') { return ` ${status}`}
+        if (status === 'Accepted') { return ` ${status}` }
+        if (status === 'Shiped') { return ` ${status}` }
+        if (status === 'Finished') { return ` ${status}` }
+    }
+
+  async populateOrders() {
     const response = await fetch('https://localhost:7134/api/Orders');
     const data = await response.json();
     this.setState({ forecasts: data, loading: false });
     }
 
     async PostOrder() {
+        const span = tracer("PizzaButt.Frontend").startSpan('PostOrder');
+
         let data = {
             id: uuidv4(),
             pizzas: ["Pruebas"],
             createdAt: new Date().toISOString(),
             userId: "Front",
             userName: "Pruebas Front",
-            "throwError": false
+            throwError : false
         }
+        context.with(trace.setSpan(context.active(), span), async () => {
+            const response = await fetch('https://localhost:7134/api/Orders', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(data)
+            });
+            const dataStatus = await response;
+            span.end();
+        })
+    }
+
+    async DeleteOrders() {
 
         const response = await fetch('https://localhost:7134/api/Orders', {
-            method: "POST",
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify(data)
+            method: 'DELETE',
         });
         const dataStatus = await response;
+
     }
 }

@@ -26,7 +26,7 @@ namespace PizzaButt.Orders.Consumers
         {
             _logger = logger;
             _ordersService = ordersService;
-            HttpClient = clientFactory.CreateClient("Metrics");
+            HttpClient = clientFactory.CreateClient("PizzaButt.Metrics");
 
         }
 
@@ -160,12 +160,6 @@ namespace PizzaButt.Orders.Consumers
                 Id = context.Message.Message.OrderId,
                 Pizzas = context.Message.Message.Pizzas
             }, context.CancellationToken);
-            await context.Publish(new OrderSubmitted
-            {
-                OrderDate = context.Message.Message.OrderDate,
-                Id = context.Message.Message.OrderId,
-                Pizzas = context.Message.Message.Pizzas
-            }, context.CancellationToken);
 
         }
 
@@ -178,13 +172,6 @@ namespace PizzaButt.Orders.Consumers
                 Id = context.Message.Message.OrderId,
                 Pizzas = context.Message.Message.Pizzas
             }, context.CancellationToken);
-
-            //await context.Publish(new OrderSubmitted
-            //{
-            //    OrderDate = context.Message.Message.OrderDate,
-            //    Id = context.Message.Message.OrderId,
-            //    Pizzas = context.Message.Message.Pizzas
-            //}, context.CancellationToken);
         }
 
         public async Task Consume(ConsumeContext<Fault<OrderAccepted>> context)
@@ -196,13 +183,6 @@ namespace PizzaButt.Orders.Consumers
                 Id = context.Message.Message.Id,
                 Pizzas = context.Message.Message.Pizzas,
             }, context.CancellationToken);
-            await context.Publish(new OrderSubmitted
-            {
-                OrderDate = context.Message.Message.OrderDate,
-                Id = context.Message.Message.Id,
-                Pizzas = context.Message.Message.Pizzas,
-                ThrowError = true,
-            }, context.CancellationToken);
         }
 
         public async Task Consume(ConsumeContext<Fault<OrderSubmitted>> context)
@@ -211,12 +191,6 @@ namespace PizzaButt.Orders.Consumers
             await _ordersService.FailedOrderAsync(new OrderDtoRequest
             {
                 CreatedAt = DateTime.UtcNow,
-                Id = context.Message.Message.Id,
-                Pizzas = context.Message.Message.Pizzas
-            }, context.CancellationToken);
-            await context.Publish(new OrderSubmitted
-            {
-                OrderDate = context.Message.Message.OrderDate,
                 Id = context.Message.Message.Id,
                 Pizzas = context.Message.Message.Pizzas
             }, context.CancellationToken);

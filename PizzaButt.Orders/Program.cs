@@ -31,7 +31,11 @@ builder.Services.AddOpenTelemetryTracing((b) => b
         o.SetDbStatementForText = true;
         o.RecordException = true;
     })
-    .AddZipkinExporter());
+    .AddOtlpExporter(otlpOptions =>
+    {
+        otlpOptions.Endpoint = new Uri("http://localhost:4317/");
+    }));
+
 builder.Services.Configure<ZipkinExporterOptions>(builder.Configuration.GetSection("Zipkin"));
 
 builder.Services.AddHttpClient("PizzaButt.Metrics", http =>
@@ -57,12 +61,8 @@ builder.Services.AddMassTransit(x =>
 {
     x.SetKebabCaseEndpointNameFormatter();
     x.AddConsumer<OrderSubmitedConsumer>();
-    x.AddConsumer<OrderAcceptedConsumer>(o => {
-        o.UseRetry(r => { r.Interval(5, TimeSpan.FromSeconds(5)); });
-        o.UseConcurrentMessageLimit(1);
-    });
+    x.AddConsumer<OrderAcceptedConsumer>();
     x.AddConsumer<OrderShippedConsumer>();
-    x.AddConsumer<OrderFinishedConsumer>();
     x.AddConsumer<OrderFinishedConsumer>();
     x.AddConsumer<OrderFailedConsumer>();
 

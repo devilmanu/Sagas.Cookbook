@@ -45,10 +45,7 @@ namespace PizzaButt.Orders.Infrastructure.Sagas
             During(Accepted,
                  When(OrderShipped)
                     .Then(o => Console.WriteLineFormatted($"Processing in sagas order {o.Data.OrderId} status {nameof(OrderShipped)}", Color.ForestGreen))
-                    .TransitionTo(Shipped),
-                 When(OrderFailed)
-                    .Then(o => Console.WriteLineFormatted($"Processing in sagas order {o.Data.OrderId} status {nameof(OrderFailed)}", Color.LimeGreen))
-                    .TransitionTo(Failed));
+                    .TransitionTo(Shipped));
 
             During(Shipped,
                  When(OrderFinished)
@@ -57,9 +54,10 @@ namespace PizzaButt.Orders.Infrastructure.Sagas
                     .Finalize());
 
             During(Failed,
-             When(OrderSubmited)
-                .Then(o => Console.WriteLineFormatted($"Processing in sagas order {o.Data.Id} status {nameof(OrderSubmited)}", Color.LimeGreen))
-                .TransitionTo(Submitted));
+             When(OrderFailed)
+                .Then(o => Console.WriteLineFormatted($"Processing in sagas order {o.Data.OrderId} status {nameof(OrderFailed)}", Color.LimeGreen))
+                .TransitionTo(Failed)
+                .Finalize());
 
 
             SetCompletedWhenFinalized(); //eliminamos instancia del rpository 

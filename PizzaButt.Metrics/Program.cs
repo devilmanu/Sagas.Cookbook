@@ -21,7 +21,10 @@ builder.Services.AddOpenTelemetryTracing((b) => b
         o.EnableConnectionLevelAttributes = true;
         o.SetDbStatementForText = true;
     })
-    .AddZipkinExporter());
+    .AddOtlpExporter(otlpOptions =>
+    {
+        otlpOptions.Endpoint = new Uri("http://localhost:4317/");
+    }));
 
 var app = builder.Build();
 

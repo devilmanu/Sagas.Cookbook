@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 using PizzaButt.Mdetrics.Controllers;
+using System.Diagnostics;
 
 namespace PizzaButt.Metrics.Controllers
 {
@@ -18,6 +19,7 @@ namespace PizzaButt.Metrics.Controllers
         [HttpPost]
         public ActionResult<MetricsDto> Post([FromBody] MetricsDto mertricsDto)
         {
+            Activity.Current?.AddTag("Metrics.Post.id", mertricsDto.Id.ToString());
             return Created("",mertricsDto);
         }
 
