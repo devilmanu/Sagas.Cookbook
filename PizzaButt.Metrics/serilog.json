@@ -1,0 +1,32 @@
+﻿{
+  "Serilog": {
+    "Using": [
+      "Serilog.Sinks.Console",
+      "Serilog.Sinks.Elasticsearch",
+      "Serilog.Sinks.File"
+    ],
+    "MinimumLevel": "Debug",
+    "WriteTo": [
+      {
+        "Name": "Console"
+      },
+      {
+        "Name": "File",
+        "Args": {
+          "path": "Log\\GoalIdentity_admin.txt",
+          "rollingInterval": "Day"
+        }
+      },
+      {
+        "Name": "Elasticsearch",
+        "Args": {
+          "nodeUris": "http://localhost:9200",
+          "indexFormat": "pizza-butt-{0:yyyy.MM}",
+          "templateName": "logs_template",
+          "autoRegisterTemplate": true,
+          "autoRegisterTemplateVersion": "ESv7"
+        }
+      }
+    ]
+  }
+}

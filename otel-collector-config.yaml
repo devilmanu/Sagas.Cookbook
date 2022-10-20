@@ -3,10 +3,10 @@ receivers:
     protocols:
       grpc:
       http:
-        cors:
-          allowed_origins:
-            - https://localhost:44444
-
+       endpoint: "localhost:4318"
+       cors:
+         allowed_origins:
+           - https://*
 exporters:
   logging:
 

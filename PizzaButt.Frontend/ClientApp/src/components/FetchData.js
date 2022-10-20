@@ -1,6 +1,6 @@
 ﻿import { v4 as uuidv4 } from 'uuid';
 import React, { Component } from 'react';
-import { tracer } from '../tracer';
+import { webTracerWithZone  } from '../tracer';
 import { context, trace } from '@opentelemetry/api';
 
 export class FetchData extends Component {
@@ -71,8 +71,8 @@ export class FetchData extends Component {
     this.setState({ forecasts: data, loading: false });
     }
 
-    async PostOrder() {
-        const span = tracer("PizzaButt.Frontend").startSpan('PostOrder');
+    PostOrder() {
+        const span = webTracerWithZone.startSpan('post-order');
 
         let data = {
             id: uuidv4(),
@@ -82,17 +82,20 @@ export class FetchData extends Component {
             userName: "Pruebas Front",
             throwError : false
         }
-        context.with(trace.setSpan(context.active(), span), async () => {
-            const response = await fetch('https://localhost:7134/api/Orders', {
+        context.with(trace.setSpan(context.active(), span), () => {
+            fetch('https://localhost:7134/api/Orders', {
                 method: 'POST',
                 headers: {
-                    'Content-Type': 'application/json'
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json'
                 },
                 body: JSON.stringify(data)
-            });
-            const dataStatus = await response;
-            span.end();
-        })
+            }).then((data) => {
+                span.end();
+                return data;
+            })
+        });
+        
     }
 
     async DeleteOrders() {
